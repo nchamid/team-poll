@@ -1,0 +1,93 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  height: 36px;
+  min-width: 140px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Primary — accent fill; theme-stable foreground (white in light, navy in dark). */
+.primary {
+  background: var(--accent-interactive);
+  color: var(--color-white);
+  border-color: var(--accent-interactive);
+}
+:global([data-theme='dark']) .primary {
+  color: var(--color-navy);
+}
+.primary:hover {
+  background: color-mix(in srgb, var(--accent-interactive) 88%, black);
+  border-color: color-mix(in srgb, var(--accent-interactive) 88%, black);
+}
+.primary:active {
+  background: color-mix(in srgb, var(--accent-interactive) 80%, black);
+}
+
+/* Secondary — bordered, transparent fill; hover flips border + text to accent. */
+.secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-button);
+}
+.secondary:hover {
+  color: var(--accent-interactive);
+  border-color: var(--accent-interactive);
+}
+
+/* Destructive — error fill with navy text in both themes (theme-stable). */
+.destructive {
+  background: var(--color-error);
+  color: var(--color-navy);
+  border-color: var(--color-error);
+}
+.destructive:hover {
+  background: color-mix(in srgb, var(--color-error) 88%, black);
+  border-color: color-mix(in srgb, var(--color-error) 88%, black);
+}
+
+.spinner {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1600ms;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    min-width: 0;
+  }
+}

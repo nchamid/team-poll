@@ -1,0 +1,38 @@
+/* ============================================================
+   McDermott Design System — Typography
+   System fonts only. No web fonts. Three families:
+   - sans  → body, UI, buttons
+   - mix   → navigation, display headings, card titles (Georgia)
+   - serif → editorial long-form content (Georgia)
+
+   Includes the type-scale utility classes (.display, .h1 … .caption)
+   with the responsive step-downs. Prefer these classes in showcase /
+   demo markup — inline font-size bypasses the responsive scaling.
+   ============================================================ */
+:root {
+  --font-sans:  -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mix:   Georgia, 'Times New Roman', serif;
+  --font-serif: Georgia, serif;
+}
+
+/* --- Type scale utilities --- */
+.display { font-family: var(--font-mix); font-size: 64px; line-height: 0.95; letter-spacing: -0.04em; margin: 0 0 var(--space-5); }
+.h1      { font-family: var(--font-mix); font-size: 44px; line-height: 1.05; letter-spacing: -0.03em; margin: 0; }
+.h2      { font-family: var(--font-mix); font-size: 32px; line-height: 1.1;  letter-spacing: -0.02em; margin: 0; }
+.h3      { font-family: var(--font-mix); font-size: 24px; line-height: 1.2;  margin: 0; }
+.body    { font-family: var(--font-sans); font-size: 16px; line-height: 1.5; }
+.body-lg { font-family: var(--font-sans); font-size: 20px; line-height: 1.4; font-weight: 300; }
+.eyebrow { font-family: var(--font-sans); font-size: 13px; font-weight: 300; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin: 0 0 var(--space-3); }
+.caption { font-family: var(--font-sans); font-size: 13px; color: var(--text-secondary); }
+
+@media (max-width: 768px) {
+  .display { font-size: 44px; }
+  .h1 { font-size: 32px; }
+  .h2 { font-size: 26px; }
+}
+@media (max-width: 480px) {
+  .display { font-size: 32px; word-break: break-word; overflow-wrap: anywhere; }
+  .h1 { font-size: 26px; word-break: break-word; }
+  .h2 { font-size: 22px; word-break: break-word; }
+  .h3 { font-size: 20px; }
+}

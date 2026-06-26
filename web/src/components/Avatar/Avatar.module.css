@@ -1,0 +1,13 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-pale-blue);
+  color: var(--color-navy);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
+}

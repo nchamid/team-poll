@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TeamPoll.Tests/TeamPoll.Tests.csproj" />
+  <Project Path="TeamPoll/TeamPoll.csproj" />
+</Solution>

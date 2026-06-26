@@ -1,0 +1,35 @@
+/* ============================================================
+   McDermott Design System — Spacing & layout
+   4px base scale. Every margin and padding references a token —
+   no arbitrary px values. Plus sidebar widths, control height,
+   and responsive breakpoint tokens.
+
+   Vertical rhythm:
+   - --space-4 between siblings within a section
+   - --space-6 between sections
+   - --space-8 between major page regions
+   ============================================================ */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* Layout */
+  --sidebar-w: 260px;
+  --sidebar-w-collapsed: 72px;
+  --control-h: 40px;
+  --topbar-h: 56px;
+
+  /* Breakpoints (also enforced in @media queries) */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+}

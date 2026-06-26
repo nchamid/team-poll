@@ -1,0 +1,30 @@
+/* ============================================================
+   McDermott Design System — Motion
+   Durations escalate with the size of the surface being moved.
+   Easings: standard (default), emphasis (entering), exit (leaving).
+   Always wrap decorative loops in prefers-reduced-motion: reduce —
+   disable skeleton/cursor/thinking-dot loops, keep state transitions
+   near-instant. Never `transition: none`.
+   ============================================================ */
+:root {
+  --duration-fast:       100ms; /* @kind other */ /* micro-interactions */
+  --duration-base:       200ms; /* @kind other */ /* default state changes */
+  --duration-slow:       300ms; /* @kind other */ /* surface transitions (modal, sheet) */
+  --duration-deliberate: 500ms; /* @kind other */ /* choreographed reveal */
+
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);  /* @kind other */ /* default */
+  --ease-emphasis: cubic-bezier(0.2, 0, 0, 1);    /* @kind other */ /* entering surfaces */
+  --ease-exit:     cubic-bezier(0.4, 0, 1, 1);    /* @kind other */ /* leaving surfaces */
+
+  /* Convenience shorthand used throughout components */
+  --transition: var(--duration-base) var(--ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--duration-fast) !important;
+    scroll-behavior: auto !important;
+  }
+}
