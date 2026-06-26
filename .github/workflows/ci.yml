@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  # Reference job: shows how to pin Node for any Node-based gate
+  # (prettier, eslint, npm audit, jest, playwright). Add the rest of
+  # your web gates here per rules/dev/ci-pipeline.md; the npm audit
+  # split below is the security baseline per web-dependency-security.md.
+  #
+  # ACTION VERSIONS: always pin the latest major of each GitHub Action
+  # (checkout@v5, setup-node@v5, setup-dotnet@v5, ...). Do NOT use v4 or
+  # older — those run on Node.js 20, which GitHub has deprecated and will
+  # warn about on every run. See rules/dev/ci-pipeline.md.
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./web
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: npm ci
+
+      # Blocking: shipped dependencies only. A High or Critical finding
+      # here reaches end users and must fail the build.
+      - name: npm audit (shipped deps) — blocking
+        run: npm audit --omit=dev --audit-level=high
+
+      # Non-blocking: full audit (including dev tooling) for visibility.
+      # High/Critical findings in dev-only deps (test runners, build tools,
+      # dev servers) do not fail the build but MUST be documented as an ADR
+      # entry in decisions.md per rules/dev/web-dependency-security.md.
+      - name: npm audit (all deps) — visibility only
+        run: npm audit --audit-level=high || true
