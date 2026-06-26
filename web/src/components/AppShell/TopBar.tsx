@@ -56,7 +56,7 @@ export function TopBar({ breadcrumbLeaf, onOpenDrawer }: TopBarProps) {
           rel="noopener noreferrer"
           className={styles.sports}
         >
-          Sports
+          ESPN
         </a>
         <ThemeToggle />
         <Avatar name={user?.displayName ?? 'You'} size={32} />
