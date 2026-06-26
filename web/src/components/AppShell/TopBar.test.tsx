@@ -15,14 +15,15 @@ vi.mock('@/auth/useAccount', () => ({
 }));
 
 describe('TopBar', () => {
-  it('TopBar — Sports link — points to ESPN and opens in a new tab safely', () => {
+  it('TopBar — ESPN link — accessible name is ESPN and opens the destination in a new tab safely', () => {
     // Arrange
     renderWithProviders(<TopBar breadcrumbLeaf={null} onOpenDrawer={vi.fn()} />);
 
     // Act
-    const sut = screen.getByRole('link', { name: /sports/i });
+    const sut = screen.getByRole('link', { name: 'ESPN' });
 
     // Assert
+    expect(sut).toHaveAccessibleName('ESPN');
     expect(sut).toHaveAttribute('href', 'https://espn.com');
     expect(sut).toHaveAttribute('target', '_blank');
     expect(sut).toHaveAttribute('rel', 'noopener noreferrer');
