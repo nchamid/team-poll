@@ -1,0 +1,70 @@
+/* ============================================================
+   McDermott Design System — Base & reset
+   Universal box-sizing, the responsive constraint cascade,
+   always-visible focus rings, and the brand application lockup
+   utility (.lockup) used as plain HTML across every surface.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+/* overflow-x: clip on html (not body) so we never break sticky positioning */
+html {
+  scroll-padding-top: var(--topbar-h);
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  max-width: 100vw;
+  transition: background var(--transition), color var(--transition);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Focus rings always visible — never `outline: none` without a replacement */
+*:focus { outline: none; }
+*:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+a { color: var(--accent-interactive); }
+code, kbd, samp { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em; }
+
+/* ============================================================
+   APPLICATION LOCKUP — the McDermott symbol + divider + app name.
+   The single shared identity for every app. Set `color` from the
+   surface: navy sidebar → var(--color-white); light surface →
+   var(--text-primary). The mark, divider and name all inherit it.
+   ============================================================ */
+.lockup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.lockup__symbol { width: 32px; height: 32px; flex-shrink: 0; }
+.lockup__symbol svg { width: 100%; height: 100%; display: block; fill: currentColor; }
+.lockup__divider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 24px;
+  flex-shrink: 0;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+.lockup__name {
+  font-family: var(--font-mix);
+  font-size: 18px;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Collapsed sidebar / ≤360px: symbol only */
+@media (max-width: 360px) {
+  .lockup__divider, .lockup__name { display: none; }
+}

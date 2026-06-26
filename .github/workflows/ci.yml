@@ -9,38 +9,145 @@ on:
       - dev
       - main
 
+permissions:
+  contents: read
+
+# Action majors verified live against the registry on 2026-06-26
+# (checkout@v7, setup-node@v6, setup-dotnet@v5, gitleaks-action@v3).
+# Re-verify before bumping — never pin a major from memory (ci-pipeline.md).
+
 jobs:
-  # Reference job: shows how to pin Node for any Node-based gate
-  # (prettier, eslint, npm audit, jest, playwright). Add the rest of
-  # your web gates here per rules/dev/ci-pipeline.md; the npm audit
-  # split below is the security baseline per web-dependency-security.md.
-  #
-  # ACTION VERSIONS: always pin the latest major of each GitHub Action
-  # (checkout@v5, setup-node@v5, setup-dotnet@v5, ...). Do NOT use v4 or
-  # older — those run on Node.js 20, which GitHub has deprecated and will
-  # warn about on every run. See rules/dev/ci-pipeline.md.
+  # ---- Web: format, lint, dependency audit, tests, build (web-* rules) ----
   web:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./web
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: Set up Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
       - name: Install dependencies
         run: npm ci
 
-      # Blocking: shipped dependencies only. A High or Critical finding
-      # here reaches end users and must fail the build.
+      - name: Prettier (formatting)
+        run: npx prettier --check .
+
+      - name: ESLint
+        run: npm run lint
+
+      # Blocking: shipped dependencies only. A High/Critical here reaches end
+      # users and must fail the build (web-dependency-security.md).
       - name: npm audit (shipped deps) — blocking
         run: npm audit --omit=dev --audit-level=high
 
-      # Non-blocking: full audit (including dev tooling) for visibility.
-      # High/Critical findings in dev-only deps (test runners, build tools,
-      # dev servers) do not fail the build but MUST be documented as an ADR
-      # entry in decisions.md per rules/dev/web-dependency-security.md.
+      # Non-blocking: full audit (incl. dev tooling) for visibility. Dev-only
+      # High/Critical findings are recorded as ADR entries in decisions.md.
       - name: npm audit (all deps) — visibility only
         run: npm audit --audit-level=high || true
+
+      - name: Unit + component tests (Vitest + vitest-axe)
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+
+  # ---- API: build, tests (incl. Testcontainers SQL integration), vuln scan ----
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore TeamPoll.slnx
+      - name: Build
+        run: dotnet build TeamPoll.slnx --no-restore -c Release
+      # ubuntu-latest provides Docker, so the Testcontainers SQL Server
+      # integration tests (incl. the vote-uniqueness tests) run fully here.
+      - name: Test
+        run: dotnet test TeamPoll.slnx --no-build -c Release --logger "console;verbosity=normal"
+      - name: Vulnerable package scan (blocking on High/Critical)
+        run: |
+          dotnet list TeamPoll.slnx package --vulnerable --include-transitive 2>&1 | tee vulnerable.txt
+          if grep -E '\b(High|Critical)\b' vulnerable.txt; then
+            echo "::error::Vulnerable NuGet package(s) found (High/Critical)."
+            exit 1
+          fi
+
+  # ---- Database: tSQLt unit tests for the stored procedures ----
+  database:
+    runs-on: ubuntu-latest
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'tSQLt_CI_Pass123'
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P tSQLt_CI_Pass123 -Q 'SELECT 1' -b"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 15
+          --health-start-period 30s
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install sqlcmd
+        run: |
+          curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo tee /etc/apt/trusted.gpg.d/microsoft.asc > /dev/null
+          curl -fsSL https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list > /dev/null
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+      - name: Create database and enable CLR (required by tSQLt)
+        run: |
+          sqlcmd -C -b -S localhost -U sa -P 'tSQLt_CI_Pass123' -Q "CREATE DATABASE TeamPollTest;"
+          sqlcmd -C -b -S localhost -U sa -P 'tSQLt_CI_Pass123' -Q "EXEC sp_configure 'show advanced options',1; RECONFIGURE; EXEC sp_configure 'clr enabled',1; RECONFIGURE; EXEC sp_configure 'clr strict security',0; RECONFIGURE;"
+      - name: Install tSQLt
+        run: |
+          curl -fsSL -o tsqlt.zip https://github.com/tSQLt-org/tSQLt/releases/latest/download/tSQLt.zip
+          unzip -o tsqlt.zip -d tsqlt
+          sqlcmd -C -S localhost -U sa -P 'tSQLt_CI_Pass123' -d TeamPollTest -i tsqlt/tSQLt.class.sql
+      - name: Apply migrations, procedures, and tSQLt tests
+        run: |
+          for f in $(ls database/migrations/*.sql | grep -v '_Rollback'); do
+            sqlcmd -C -b -S localhost -U sa -P 'tSQLt_CI_Pass123' -d TeamPollTest -i "$f"
+          done
+          for f in database/procedures/*.sql; do
+            sqlcmd -C -b -S localhost -U sa -P 'tSQLt_CI_Pass123' -d TeamPollTest -i "$f"
+          done
+          for f in database/tests/*.sql; do
+            sqlcmd -C -b -S localhost -U sa -P 'tSQLt_CI_Pass123' -d TeamPollTest -i "$f"
+          done
+      - name: Run tSQLt.RunAll
+        run: sqlcmd -C -b -S localhost -U sa -P 'tSQLt_CI_Pass123' -d TeamPollTest -Q "EXEC tSQLt.RunAll;"
+
+  # ---- Secret scan (Gitleaks) — security baseline per decisions.md ADR-004 ----
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---- SonarCloud SAST (ADR-004) ----
+  # Enabled per-project: set repo variable ENABLE_SONAR=true and secret
+  # SONAR_TOKEN, add a sonar-project.properties, and add the
+  # SonarSource/sonarqube-scan-action step here — verifying its latest major
+  # live at that time (ci-pipeline.md). Left out of the default run so CI is
+  # green for repos without a SonarCloud project provisioned.

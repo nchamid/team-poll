@@ -6,6 +6,7 @@ build/
 .cache/
 .parcel-cache/
 .vite/
+*.tsbuildinfo
 
 # The 'build/' pattern above is unanchored — without this negation it
 # would also match the .claude/skills/build/ skill folder. Keep the
@@ -51,3 +52,6 @@ yarn-error.log*
 
 # Review cache — produced per-run, not committed
 artifacts/docs/dev/reviews/.last-clean-run.json
+
+# Design prototype archive — the extracted project/ folder is tracked instead
+artifacts/docs/design/*.zip

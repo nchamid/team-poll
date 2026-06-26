@@ -1,0 +1,95 @@
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100dvh;
+  background: var(--bg-page);
+  max-width: 100vw;
+  min-width: 0;
+}
+
+.sidebarDesktop {
+  background: var(--bg-sidebar);
+  color: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--space-5) var(--space-5);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.main {
+  width: 100%;
+  max-width: min(100%, 1200px);
+  min-width: 0;
+  padding: var(--space-7);
+}
+
+/* Drawer (mobile) — hidden off-canvas by default. */
+.drawer {
+  display: none;
+}
+
+.scrim {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .shell {
+    display: block;
+  }
+
+  .sidebarDesktop {
+    display: none;
+  }
+
+  .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: var(--scrim);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-slow) var(--ease-emphasis);
+  }
+
+  .scrimOpen {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .drawer {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-sidebar);
+    color: var(--color-white);
+    padding: var(--space-6) var(--space-5) var(--space-5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: min(85vw, 320px);
+    z-index: 110;
+    box-shadow: var(--shadow-lg);
+    transform: translateX(-100%);
+    transition: transform var(--duration-slow) var(--ease-emphasis);
+  }
+
+  .drawerOpen {
+    transform: translateX(0);
+  }
+
+  .main {
+    padding: var(--space-5) var(--space-4) var(--space-8);
+  }
+}

@@ -1,0 +1,9 @@
+/* Sidebar lockup is white on navy in both themes. */
+.sidebar {
+  color: var(--color-white);
+}
+
+/* Light-surface lockup follows the theme foreground. */
+.light {
+  color: var(--text-primary);
+}

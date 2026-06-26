@@ -1,0 +1,131 @@
+/* ============================================================
+   McDermott Design System — tokens (placeholder for @mws/design-system).
+   When the firm publishes the real package, swap this src/mws/ folder
+   for the package import. Components consume these via var(--mws-...) /
+   the semantic theme tokens below — never hardcoded hex, never raw
+   primitives in component code.
+
+   Sourced from the design system token set (.claude/rules/design/
+   _core-requirements.md) and the prototype bundle's _ds/tokens/*.css.
+   ============================================================ */
+
+:root {
+  /* --- Primary --- */
+  --color-navy: #000042;
+  --color-blue: #0018f2;
+  --color-white: #ffffff;
+
+  /* --- Secondary --- */
+  --color-magenta: #f48dff;
+  --color-orange: #fc561d;
+  --color-gold: #e5ac2e;
+
+  /* --- Highlights --- */
+  --color-teal: #00e2c1;
+  --color-neon: #d2ff3e;
+
+  /* --- Pale backgrounds (theme-stable — always pair with navy text) --- */
+  --color-pale-blue: #e2e8ff;
+  --color-pale-magenta: #ffedff;
+  --color-pale-orange: #ffe2de;
+  --color-pale-gold: #f9e9d2;
+  --color-pale-success: #dcf1d2;
+
+  /* --- Alerts (background fills only — text on alerts must be navy) --- */
+  --color-error: #ff3333;
+  --color-success: #75d957;
+  --color-warning: #f1e53c;
+
+  /* --- Internal-only utility grays (NEVER in client-facing UI) --- */
+  --color-navy-gray-1: #ebebf2;
+  --color-navy-gray-2: #dedee5;
+  --color-navy-gray-3: #d2d2d9;
+
+  /* --- Spacing (4px base scale) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  /* --- Layout --- */
+  --sidebar-w: 260px;
+  --sidebar-w-collapsed: 72px;
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --topbar-h: 56px;
+
+  /* --- Breakpoints --- */
+  --bp-sm: 640px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+
+  /* --- Elevation & shape --- */
+  --radius: 2px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* --- Motion --- */
+  --duration-fast: 100ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-deliberate: 500ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasis: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --transition: var(--duration-base) var(--ease-standard);
+
+  /* --- Typography --- */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mix: Georgia, 'Times New Roman', serif;
+  --font-serif: Georgia, serif;
+}
+
+/* ============================================================
+   Theme tokens — semantic aliases that flip per [data-theme].
+   ALWAYS reference these in components, never raw primitives.
+   ============================================================ */
+:root,
+:root[data-theme='light'] {
+  --bg-page: #f7f7fc;
+  --bg-surface: #ffffff;
+  --bg-sidebar: var(--color-navy);
+  --text-primary: var(--color-navy);
+  --text-secondary: rgba(0, 0, 66, 0.65);
+  --accent-interactive: var(--color-blue);
+  --icon-default: var(--color-navy);
+  --border-light: #e5e5ee;
+  --border-button: #d9d9d9;
+  --focus-ring: var(--color-blue);
+  --scrim: rgba(0, 0, 66, 0.5);
+  --skeleton-base: #ebebf2;
+  --skeleton-pulse: #dedee5;
+  --btn-destructive-disabled-bg: #ffb3b3;
+  --btn-destructive-disabled-fg: rgba(0, 0, 66, 0.55);
+}
+
+:root[data-theme='dark'] {
+  --bg-page: #13134e;
+  --bg-surface: #1c1c66;
+  --bg-sidebar: #0d0d46;
+  --text-primary: var(--color-white);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --accent-interactive: var(--color-teal);
+  --icon-default: var(--color-teal);
+  --border-light: #2c2c80;
+  --border-button: #4d4da8;
+  --focus-ring: var(--color-teal);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --skeleton-base: #2c2c80;
+  --skeleton-pulse: #3d3da3;
+  --btn-destructive-disabled-bg: #4a1e1e;
+  --btn-destructive-disabled-fg: rgba(255, 255, 255, 0.45);
+}

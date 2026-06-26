@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/colors.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/motion.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/typography.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/theme.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/tokens/base.css">
+<link rel="stylesheet" href="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/styles.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<script src="_ds/mcdermott-design-system-ba7ae43c-958e-4cec-b746-69da10493c3d/_ds_bundle.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--bg-page); color: var(--text-primary); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: inherit; }
+</style>
+</helmet>
+<div style="{{ shellStyle }}">
+
+  <div onClick="{{ closeDrawer }}" style="{{ scrimStyle }}"></div>
+
+  <aside aria-label="Primary" style="{{ sidebarStyle }}">
+    <div style="display:flex; flex-direction:column; gap:var(--space-6); flex:1; min-height:0">
+      <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Lockup" name="Team Poll" surface="sidebar" hint-size="auto,32px"></x-import>
+      <nav aria-label="Sections" style="display:flex; flex-direction:column; gap:var(--space-1)">
+        <a href="#polls" onClick="{{ goList }}" aria-current="page" style="display:flex; align-items:center; gap:var(--space-3); color:var(--color-teal); text-decoration:none; font-family:var(--font-mix); font-size:16px; padding:var(--space-2) var(--space-3); border-radius:var(--radius); border-left:3px solid var(--color-teal); background:rgba(255,255,255,0.05)">
+          <i class="ph ph-chart-bar-horizontal" aria-hidden="true" style="font-size:20px"></i>
+          <span>Polls</span>
+        </a>
+      </nav>
+    </div>
+    <div style="display:flex; align-items:center; gap:var(--space-3); flex-shrink:0; border-top:1px solid rgba(255,255,255,0.10); padding-top:var(--space-4); margin-top:var(--space-4)">
+      <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Avatar" name="Mara Lindqvist" size="32" hint-size="32px,32px"></x-import>
+      <div style="min-width:0; flex:1">
+        <div style="font-size:14px; color:var(--color-white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">Mara Lindqvist</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.6)">Litigation support</div>
+      </div>
+      <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.IconButton" icon="ph-sign-out" label="Sign out" hint-size="36px,36px"></x-import>
+    </div>
+  </aside>
+
+  <div style="min-width:0; display:flex; flex-direction:column; min-height:100vh">
+
+    <header style="position:sticky; top:0; z-index:50; height:var(--topbar-h); background:var(--bg-surface); border-bottom:1px solid var(--border-light); display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); padding:0 var(--space-6)">
+      <div style="display:flex; align-items:center; gap:var(--space-3); min-width:0">
+        <button onClick="{{ openDrawer }}" aria-label="Open menu" type="button" style="{{ hamburgerStyle }}">
+          <i class="ph ph-list" aria-hidden="true" style="font-size:22px"></i>
+        </button>
+        <nav aria-label="Breadcrumb" style="display:flex; align-items:center; gap:var(--space-2); font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-secondary); min-width:0">
+          <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.McDermottSymbol" size="{{ symbolSize }}" hint-size="16px,16px"></x-import>
+          <i class="ph ph-caret-right" aria-hidden="true" style="font-size:14px; flex-shrink:0"></i>
+          <button onClick="{{ goList }}" type="button" style="background:transparent; border:none; cursor:pointer; font:inherit; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-secondary); padding:0; white-space:nowrap" style-hover="color:var(--accent-interactive)">Polls</button>
+          <sc-if value="{{ crumbHasCurrent }}" hint-placeholder-val="{{ false }}">
+            <i class="ph ph-caret-right" aria-hidden="true" style="font-size:14px; flex-shrink:0"></i>
+            <span aria-current="page" style="text-transform:none; letter-spacing:normal; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:min(40vw,280px)">{{ crumbCurrent }}</span>
+          </sc-if>
+        </nav>
+      </div>
+      <div style="display:flex; align-items:center; gap:var(--space-2); flex-shrink:0">
+        <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.IconButton" icon="{{ themeIcon }}" label="Toggle theme" onClick="{{ toggleTheme }}" hint-size="36px,36px"></x-import>
+        <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Avatar" name="Mara Lindqvist" size="32" hint-size="32px,32px"></x-import>
+      </div>
+    </header>
+
+    <main style="{{ mainStyle }}">
+
+      <sc-if value="{{ isList }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap; margin-bottom:var(--space-7)">
+          <div style="min-width:0">
+            <p class="eyebrow" style="margin:0 0 var(--space-2)">Team Poll</p>
+            <h1 class="h2" style="margin:0">Polls</h1>
+          </div>
+          <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="primary" icon="ph-plus" onClick="{{ goCreate }}" hint-size="160px,36px">Create poll</x-import>
+        </div>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--bg-surface); border:1px solid var(--border-light); border-radius:var(--radius); padding:var(--space-9) var(--space-6); display:flex; flex-direction:column; align-items:center; text-align:center; gap:var(--space-4); max-width:520px; margin:var(--space-6) auto 0">
+            <span style="width:64px; height:64px; border-radius:50%; background:var(--color-pale-blue); color:var(--color-navy); display:inline-flex; align-items:center; justify-content:center">
+              <i class="ph ph-chart-bar-horizontal" aria-hidden="true" style="font-size:32px"></i>
+            </span>
+            <h2 style="font-family:var(--font-mix); font-size:28px; line-height:1.1; letter-spacing:-0.02em; margin:0; color:var(--text-primary)">No polls yet</h2>
+            <p style="margin:0; font-size:16px; line-height:1.5; color:var(--text-secondary); max-width:38ch">Start a poll to settle your team's next small decision — pick a day, a place, a time — and let everyone weigh in.</p>
+            <div style="margin-top:var(--space-2)">
+              <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="primary" icon="ph-plus" onClick="{{ goCreate }}" hint-size="200px,36px">Create the first poll</x-import>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ hasPolls }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; flex-direction:column; gap:var(--space-8)">
+            <section>
+              <div style="display:flex; align-items:baseline; gap:var(--space-3); margin-bottom:var(--space-4)">
+                <span style="font-family:var(--font-sans); font-size:13px; font-weight:300; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-secondary)">Open</span>
+                <span style="font-size:13px; color:var(--text-secondary)">{{ openCount }}</span>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:var(--space-4)">
+                <sc-for list="{{ openPolls }}" as="poll" hint-placeholder-count="3">
+                  <div onClick="{{ poll.onOpen }}" role="button" tabindex="0" style="cursor:pointer; background:var(--bg-surface); border:1px solid var(--border-light); border-radius:var(--radius); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-4); color:var(--text-primary); min-width:0; transition:transform var(--transition), box-shadow var(--transition), border-color var(--transition), color var(--transition)" style-hover="border-color:var(--accent-interactive); color:var(--accent-interactive); transform:translateY(-2px); box-shadow:var(--shadow-md)">
+                    <div style="display:flex">
+                      <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Badge" variant="live" hint-size="auto,24px">Open</x-import>
+                    </div>
+                    <div style="font-family:var(--font-mix); font-size:22px; line-height:1.2; letter-spacing:-0.02em; color:inherit; text-wrap:pretty">{{ poll.question }}</div>
+                    <div style="margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:var(--space-3)">
+                      <div style="display:flex; align-items:center; gap:var(--space-2); min-width:0">
+                        <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Avatar" name="{{ poll.owner }}" size="24" hint-size="24px,24px"></x-import>
+                        <span style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ poll.owner }}</span>
+                      </div>
+                      <span style="font-size:13px; color:var(--text-secondary); white-space:nowrap; flex-shrink:0">{{ poll.meta }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </section>
+
+            <sc-if value="{{ hasClosed }}" hint-placeholder-val="{{ true }}">
+              <section>
+                <div style="display:flex; align-items:baseline; gap:var(--space-3); margin-bottom:var(--space-4)">
+                  <span style="font-family:var(--font-sans); font-size:13px; font-weight:300; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-secondary)">Closed</span>
+                  <span style="font-size:13px; color:var(--text-secondary)">{{ closedCount }}</span>
+                </div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:var(--space-4)">
+                  <sc-for list="{{ closedPolls }}" as="poll" hint-placeholder-count="2">
+                    <div onClick="{{ poll.onOpen }}" role="button" tabindex="0" style="cursor:pointer; background:var(--bg-surface); border:1px solid var(--border-light); border-radius:var(--radius); padding:var(--space-5); display:flex; flex-direction:column; gap:var(--space-4); color:var(--text-primary); min-width:0; transition:transform var(--transition), box-shadow var(--transition), border-color var(--transition), color var(--transition)" style-hover="border-color:var(--accent-interactive); color:var(--accent-interactive); transform:translateY(-2px); box-shadow:var(--shadow-md)">
+                      <div style="display:flex">
+                        <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Badge" variant="archived" hint-size="auto,24px">Closed</x-import>
+                      </div>
+                      <div style="font-family:var(--font-mix); font-size:22px; line-height:1.2; letter-spacing:-0.02em; color:inherit; text-wrap:pretty">{{ poll.question }}</div>
+                      <div style="margin-top:auto; display:flex; align-items:center; justify-content:space-between; gap:var(--space-3)">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); min-width:0">
+                          <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Avatar" name="{{ poll.owner }}" size="24" hint-size="24px,24px"></x-import>
+                          <span style="font-size:13px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis">{{ poll.owner }}</span>
+                        </div>
+                        <span style="font-size:13px; color:var(--text-secondary); white-space:nowrap; flex-shrink:0">{{ poll.meta }}</span>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </section>
+            </sc-if>
+          </div>
+        </sc-if>
+      </sc-if>
+
+      <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:620px; margin:0 auto">
+          <button onClick="{{ goList }}" type="button" style="display:inline-flex; align-items:center; gap:var(--space-2); background:transparent; border:none; cursor:pointer; color:var(--text-secondary); font-family:var(--font-sans); font-size:13px; text-transform:uppercase; letter-spacing:0.08em; padding:var(--space-2) 0; margin-bottom:var(--space-4)" style-hover="color:var(--accent-interactive)">
+            <i class="ph ph-arrow-left" aria-hidden="true"></i><span>Back to polls</span>
+          </button>
+          <p class="eyebrow" style="margin:0 0 var(--space-2)">Team Poll</p>
+          <h1 class="h2" style="margin:0 0 var(--space-3)">Create a poll</h1>
+          <p style="margin:0 0 var(--space-5); font-size:16px; line-height:1.5; color:var(--text-secondary)">Ask one question, add up to six options, and the team can start voting right away.</p>
+
+          <sc-if value="{{ cShowError }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:var(--space-5)">
+              <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Alert" severity="warning" hint-size="100%,56px">A few fields need attention before this poll can go out. Check the highlighted items below.</x-import>
+            </div>
+          </sc-if>
+
+          <div style="display:flex; flex-direction:column; gap:var(--space-6)">
+            <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Input" label="Question" placeholder="What should the team decide?" value="{{ cQuestion }}" onChange="{{ cSetQuestion }}" onBlur="{{ cBlurQuestion }}" error="{{ cQuestionError }}" hint="Keep it short — this is what everyone sees." maxLength="140" hint-size="100%,72px"></x-import>
+
+            <div style="display:flex; flex-direction:column; gap:var(--space-3)">
+              <div style="font-family:var(--font-sans); font-size:14px; font-weight:500; color:var(--text-primary)">Options</div>
+              <p style="margin:0; font-size:13px; color:var(--text-secondary)">Add between two and six choices. People pick exactly one.</p>
+              <div style="display:flex; flex-direction:column; gap:var(--space-3)">
+                <sc-for list="{{ cOptionRows }}" as="row" hint-placeholder-count="2">
+                  <div style="display:flex; align-items:flex-start; gap:var(--space-2)">
+                    <div style="flex:1; min-width:0">
+                      <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Input" placeholder="{{ row.placeholder }}" value="{{ row.value }}" onChange="{{ row.onChange }}" onBlur="{{ row.onBlur }}" error="{{ row.error }}" maxLength="80" hint-size="100%,40px"></x-import>
+                    </div>
+                    <sc-if value="{{ row.canRemove }}" hint-placeholder-val="{{ true }}">
+                      <div style="height:40px; display:flex; align-items:center; flex-shrink:0">
+                        <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.IconButton" icon="ph-x" label="Remove option" onClick="{{ row.onRemove }}" hint-size="36px,36px"></x-import>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); flex-wrap:wrap; margin-top:var(--space-1)">
+                <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" icon="ph-plus" onClick="{{ cAdd }}" disabled="{{ cAddDisabled }}" hint-size="150px,36px">Add option</x-import>
+                <span style="font-size:13px; color:var(--text-secondary)">{{ cOptionCountLabel }}</span>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; margin-top:var(--space-2)">
+              <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="primary" icon="ph-check" onClick="{{ cSubmit }}" hint-size="160px,36px">Create poll</x-import>
+              <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" onClick="{{ goList }}" hint-size="120px,36px">Cancel</x-import>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:720px; margin:0 auto">
+          <button onClick="{{ goList }}" type="button" style="display:inline-flex; align-items:center; gap:var(--space-2); background:transparent; border:none; cursor:pointer; color:var(--text-secondary); font-family:var(--font-sans); font-size:13px; text-transform:uppercase; letter-spacing:0.08em; padding:var(--space-2) 0; margin-bottom:var(--space-4)" style-hover="color:var(--accent-interactive)">
+            <i class="ph ph-arrow-left" aria-hidden="true"></i><span>Back to polls</span>
+          </button>
+
+          <div style="background:var(--bg-surface); border:1px solid var(--border-light); border-radius:var(--radius); padding:var(--space-6); display:flex; flex-direction:column; gap:var(--space-5)">
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:var(--space-4); flex-wrap:wrap">
+              <div style="min-width:0; flex:1; display:flex; flex-direction:column; gap:var(--space-3)">
+                <div style="display:flex">
+                  <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Badge" variant="{{ dStatusVariant }}" hint-size="auto,24px">{{ dStatusLabel }}</x-import>
+                </div>
+                <h1 style="font-family:var(--font-mix); font-size:30px; line-height:1.15; letter-spacing:-0.02em; margin:0; color:var(--text-primary); text-wrap:pretty">{{ dQuestion }}</h1>
+                <div style="display:flex; align-items:center; gap:var(--space-2); flex-wrap:wrap; color:var(--text-secondary); font-size:14px">
+                  <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Avatar" name="{{ dOwner }}" size="24" hint-size="24px,24px"></x-import>
+                  <span>{{ dOwnerLabel }}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{{ dTotalLabel }}</span>
+                </div>
+              </div>
+              <sc-if value="{{ dCanManage }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex; gap:var(--space-2); flex-wrap:wrap; flex-shrink:0">
+                  <sc-if value="{{ dCanClose }}" hint-placeholder-val="{{ false }}">
+                    <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" icon="ph-lock-simple" onClick="{{ closePoll }}" hint-size="130px,36px">Close poll</x-import>
+                  </sc-if>
+                  <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" icon="ph-trash" onClick="{{ askDelete }}" hint-size="120px,36px">Delete</x-import>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="height:1px; background:var(--border-light)"></div>
+
+            <sc-if value="{{ dVoting }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+                <p style="margin:0; font-size:14px; color:var(--text-secondary)">Choose one option, then cast your vote. You can change it while the poll is open.</p>
+                <div style="display:flex; flex-direction:column; gap:var(--space-3)">
+                  <sc-for list="{{ dPickRows }}" as="r" hint-placeholder-count="3">
+                    <div onClick="{{ r.onPick }}" role="radio" aria-checked="{{ r.selected }}" tabindex="0" style="{{ r.rowStyle }}" style-hover="border-color:var(--accent-interactive); color:var(--accent-interactive)">
+                      <span style="{{ r.radioStyle }}">
+                        <sc-if value="{{ r.selected }}" hint-placeholder-val="{{ false }}">
+                          <span style="width:10px; height:10px; border-radius:50%; background:var(--accent-interactive)"></span>
+                        </sc-if>
+                      </span>
+                      <span style="font-size:16px; font-family:var(--font-sans)">{{ r.label }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; margin-top:var(--space-2)">
+                  <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="primary" icon="ph-check" onClick="{{ castVote }}" disabled="{{ dVoteDisabled }}" hint-size="150px,36px">{{ dVoteCtaLabel }}</x-import>
+                  <sc-if value="{{ dShowCancel }}" hint-placeholder-val="{{ false }}">
+                    <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" onClick="{{ cancelVote }}" hint-size="120px,36px">Cancel</x-import>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ dShowResults }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; flex-direction:column; gap:var(--space-5)">
+                <div style="display:flex; flex-direction:column; gap:var(--space-4)">
+                  <sc-for list="{{ dResultRows }}" as="r" hint-placeholder-count="3">
+                    <div style="display:flex; flex-direction:column; gap:var(--space-2)">
+                      <div style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-3)">
+                        <div style="display:flex; align-items:center; gap:var(--space-2); min-width:0">
+                          <span style="font-size:16px; color:var(--text-primary); {{ r.labelWeight }} text-wrap:pretty">{{ r.label }}</span>
+                          <sc-if value="{{ r.isMine }}" hint-placeholder-val="{{ false }}">
+                            <span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--accent-interactive); white-space:nowrap"><i class="ph ph-check-circle" style="font-size:14px"></i>Your vote</span>
+                          </sc-if>
+                        </div>
+                        <div style="font-size:14px; color:var(--text-secondary); white-space:nowrap; flex-shrink:0"><span style="{{ r.pctWeight }} color:var(--text-primary)">{{ r.pctLabel }}</span> · {{ r.countLabel }}</div>
+                      </div>
+                      <div style="height:8px; background:var(--border-light); border-radius:999px; overflow:hidden">
+                        <div style="height:100%; width:{{ r.barWidth }}; background:var(--accent-interactive); border-radius:999px; transition:width 700ms var(--ease-emphasis)"></div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:flex; align-items:center; gap:var(--space-2); padding-top:var(--space-1); color:var(--text-secondary); font-size:14px; border-top:1px solid var(--border-light)">
+                  <i class="ph ph-users" aria-hidden="true" style="font-size:18px; margin-top:var(--space-2)"></i>
+                  <span style="margin-top:var(--space-2)">{{ dTotalLabel }}</span>
+                </div>
+                <sc-if value="{{ dCanChange }}" hint-placeholder-val="{{ false }}">
+                  <div>
+                    <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" icon="ph-pencil-simple" onClick="{{ changeVote }}" hint-size="150px,36px">{{ dChangeLabel }}</x-import>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+    </main>
+  </div>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:var(--space-4)">
+      <div onClick="{{ cancelDelete }}" style="position:absolute; inset:0; background:var(--scrim); backdrop-filter:blur(4px)"></div>
+      <div role="dialog" aria-modal="true" style="position:relative; background:var(--bg-surface); border:1px solid var(--border-light); border-radius:var(--radius); box-shadow:var(--shadow-lg); max-width:440px; width:100%; padding:var(--space-6); display:flex; flex-direction:column; gap:var(--space-4)">
+        <h2 style="font-family:var(--font-mix); font-size:24px; line-height:1.15; margin:0; color:var(--text-primary)">Delete this poll?</h2>
+        <p style="margin:0; font-size:15px; line-height:1.5; color:var(--text-secondary)">{{ deleteQuestion }} will be removed for everyone on the team, along with its votes. This can't be undone.</p>
+        <div style="display:flex; justify-content:flex-end; gap:var(--space-3); margin-top:var(--space-2); flex-wrap:wrap">
+          <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="secondary" onClick="{{ cancelDelete }}" hint-size="120px,36px">Keep poll</x-import>
+          <x-import component-from-global-scope="McDermottDesignSystem_ba7ae4.Button" variant="destructive" icon="ph-trash" onClick="{{ doDelete }}" hint-size="140px,36px">Delete poll</x-import>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;seeded&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot; },
+  &quot;startTheme&quot;: { &quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;light&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;tsType&quot;: &quot;string&quot; },
+  &quot;admin&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot; }
+}">
+class Component extends DCLogic {
+  me = 'Mara Lindqvist';
+
+  state = {
+    vw: typeof window !== 'undefined' ? window.innerWidth : 1280,
+    drawerOpen: false,
+    theme: 'light',
+    route: 'list',
+    selectedId: null,
+    voting: false,
+    draftVote: null,
+    barsIn: false,
+    confirmDelete: false,
+    draft: { question: '', options: ['', ''], qTouched: false, optTouched: [false, false], submitted: false },
+    polls: [
+      { id: 'offsite', question: 'Which day works best for the Q3 team offsite?', owner: 'Mara Lindqvist', status: 'open', myVote: 'o2',
+        options: [ { id: 'o1', label: 'Monday, Aug 11', votes: 5 }, { id: 'o2', label: 'Tuesday, Aug 12', votes: 11 }, { id: 'o3', label: 'Wednesday, Aug 13', votes: 7 }, { id: 'o4', label: 'Thursday, Aug 14', votes: 4 } ] },
+      { id: 'lunch', question: 'Where should we go for the team lunch on Friday?', owner: 'Devin Osei', status: 'open', myVote: null,
+        options: [ { id: 'a', label: 'Cositas Tacos', votes: 4 }, { id: 'b', label: 'The Sandwich Counter', votes: 3 }, { id: 'c', label: 'Green Bowl', votes: 5 }, { id: 'd', label: 'Pho Hoa', votes: 1 }, { id: 'e', label: 'Bring your own', votes: 1 } ] },
+      { id: 'standup', question: 'What time should we hold the weekly standup?', owner: 'Priya Raman', status: 'open', myVote: null,
+        options: [ { id: 'a', label: '9:00 AM', votes: 2 }, { id: 'b', label: '9:30 AM', votes: 4 }, { id: 'c', label: '10:00 AM', votes: 3 } ] },
+      { id: 'rooms', question: 'Which conference room should host new-hire onboarding?', owner: 'Tomas Brandt', status: 'closed', myVote: 'a',
+        options: [ { id: 'a', label: 'Marble (12th floor)', votes: 9 }, { id: 'b', label: 'Harbor (9th floor)', votes: 8 }, { id: 'c', label: 'Atrium (lobby)', votes: 5 } ] },
+      { id: 'probono', question: 'A working name for the new pro bono initiative', owner: 'Mara Lindqvist', status: 'closed', myVote: 'a',
+        options: [ { id: 'a', label: 'Open Doors', votes: 12 }, { id: 'b', label: 'Bridge Counsel', votes: 9 }, { id: 'c', label: 'The Commons', votes: 7 }, { id: 'd', label: 'First Light', votes: 6 }, { id: 'e', label: 'Aequitas', votes: 4 }, { id: 'f', label: 'Lighthouse', votes: 3 } ] },
+    ],
+  };
+
+  componentDidMount() {
+    const t = this.props.startTheme || 'light';
+    this.setState({ theme: t });
+    document.documentElement.setAttribute('data-theme', t);
+    this._onResize = () => this.setState({ vw: window.innerWidth });
+    window.addEventListener('resize', this._onResize);
+  }
+
+  componentWillUnmount() {
+    if (this._onResize) window.removeEventListener('resize', this._onResize);
+  }
+
+  animateBars() {
+    this.setState({ barsIn: false });
+    setTimeout(() => this.setState({ barsIn: true }), 50);
+  }
+
+  enterDetail(id) {
+    const p = this.state.polls.find((x) => x.id === id);
+    if (!p) return;
+    const canManage = p.owner === this.me || !!this.props.admin;
+    const voting = p.status === 'open' && p.myVote == null && !canManage;
+    this.setState({ route: 'detail', selectedId: id, voting, draftVote: p.myVote, drawerOpen: false, confirmDelete: false });
+    this.animateBars();
+  }
+
+  castVote() {
+    const id = this.state.draftVote;
+    if (!id) return;
+    this.setState((s) => {
+      const polls = s.polls.map((p) => {
+        if (p.id !== s.selectedId) return p;
+        const prev = p.myVote;
+        const options = p.options.map((o) => {
+          let v = o.votes;
+          if (o.id === prev) v -= 1;
+          if (o.id === id) v += 1;
+          return Object.assign({}, o, { votes: v });
+        });
+        return Object.assign({}, p, { options, myVote: id });
+      });
+      return { polls, voting: false };
+    });
+    this.animateBars();
+  }
+
+  validate(d) {
+    const q = d.question.trim();
+    let question = '';
+    if (!q) question = 'Add a question so people know what they are voting on.';
+    else if (d.question.length > 140) question = 'Keep the question under 140 characters.';
+    const options = d.options.map((val) => {
+      if (!val.trim()) return 'Add a label, or remove this option.';
+      if (val.length > 80) return 'Keep options under 80 characters.';
+      return '';
+    });
+    const ok = !question && options.every((e) => !e);
+    return { question, options, ok };
+  }
+
+  setOption(i, val) {
+    this.setState((s) => { const options = s.draft.options.slice(); options[i] = val; return { draft: Object.assign({}, s.draft, { options }) }; });
+  }
+  blurOption(i) {
+    this.setState((s) => { const optTouched = s.draft.optTouched.slice(); optTouched[i] = true; return { draft: Object.assign({}, s.draft, { optTouched }) }; });
+  }
+  addOption() {
+    this.setState((s) => {
+      if (s.draft.options.length >= 6) return null;
+      return { draft: Object.assign({}, s.draft, { options: s.draft.options.concat(['']), optTouched: s.draft.optTouched.concat([false]) }) };
+    });
+  }
+  removeOption(i) {
+    this.setState((s) => {
+      if (s.draft.options.length <= 2) return null;
+      const options = s.draft.options.slice(); options.splice(i, 1);
+      const optTouched = s.draft.optTouched.slice(); optTouched.splice(i, 1);
+      return { draft: Object.assign({}, s.draft, { options, optTouched }) };
+    });
+  }
+
+  submitCreate() {
+    const v = this.validate(this.state.draft);
+    if (v.ok) {
+      const d = this.state.draft;
+      const poll = { id: 'p' + Date.now(), question: d.question.trim(), owner: this.me, status: 'open', myVote: null,
+        options: d.options.map((val, i) => ({ id: 'n' + i, label: val.trim(), votes: 0 })) };
+      this.setState((s) => ({ polls: [poll].concat(s.polls), route: 'list', draft: { question: '', options: ['', ''], qTouched: false, optTouched: [false, false], submitted: false } }));
+    } else {
+      this.setState((s) => ({ draft: Object.assign({}, s.draft, { submitted: true, qTouched: true, optTouched: s.draft.options.map(() => true) }) }));
+    }
+  }
+
+  renderVals() {
+    const s = this.state;
+    const mobile = s.vw < 1024;
+    const drawerOpen = s.drawerOpen;
+    const theme = s.theme;
+    const seeded = this.props.seeded ?? true;
+    const all = seeded ? s.polls : [];
+
+    const decorate = (p) => Object.assign({}, p, {
+      meta: p.options.length + ' options · ' + p.options.reduce((a, o) => a + o.votes, 0) + ' votes',
+      onOpen: () => this.enterDetail(p.id),
+    });
+    const openPolls = all.filter((p) => p.status === 'open').map(decorate);
+    const closedPolls = all.filter((p) => p.status === 'closed').map(decorate);
+
+    const shellStyle = mobile
+      ? 'display:block; min-height:100vh; background:var(--bg-page)'
+      : 'display:grid; grid-template-columns:var(--sidebar-w) 1fr; min-height:100vh; background:var(--bg-page)';
+    const sidebarBase = 'background:var(--bg-sidebar); color:var(--color-white); display:flex; flex-direction:column; padding:var(--space-6) var(--space-5) var(--space-5); gap:var(--space-6)';
+    const sidebarStyle = mobile
+      ? sidebarBase + '; position:fixed; top:0; left:0; height:100vh; width:min(85vw, 320px); z-index:110; box-shadow:var(--shadow-lg); transition:transform var(--duration-slow) var(--ease-emphasis); transform:' + (drawerOpen ? 'translateX(0)' : 'translateX(-100%)')
+      : sidebarBase + '; position:sticky; top:0; height:100vh; overflow-y:auto';
+    const scrimStyle = 'position:fixed; inset:0; background:var(--scrim); backdrop-filter:blur(4px); z-index:100; transition:opacity var(--duration-slow) var(--ease-emphasis); ' + (mobile && drawerOpen ? 'opacity:1; pointer-events:auto' : 'opacity:0; pointer-events:none');
+    const hamburgerStyle = 'width:36px; height:36px; align-items:center; justify-content:center; background:transparent; border:none; color:var(--icon-default); cursor:pointer; border-radius:var(--radius); display:' + (mobile ? 'inline-flex' : 'none');
+    const mainStyle = 'width:100%; max-width:min(100%, 1200px); min-width:0; padding:' + (mobile ? 'var(--space-5) var(--space-4) var(--space-8)' : 'var(--space-7)');
+
+    // ----- create -----
+    const d = s.draft;
+    const v = this.validate(d);
+    const cOptionRows = d.options.map((val, i) => ({
+      value: val,
+      placeholder: 'Option ' + (i + 1),
+      error: (d.submitted || d.optTouched[i]) ? v.options[i] : '',
+      canRemove: d.options.length > 2,
+      onChange: (e) => this.setOption(i, e.target.value),
+      onBlur: () => this.blurOption(i),
+      onRemove: () => this.removeOption(i),
+    }));
+
+    // ----- detail -----
+    const poll = s.polls.find((p) => p.id === s.selectedId);
+    const detail = {
+      dStatusVariant: 'live', dStatusLabel: 'Open', dQuestion: '', dOwner: '', dOwnerLabel: '', dTotalLabel: '',
+      dCanManage: false, dCanClose: false, dVoting: false, dShowResults: true,
+      dPickRows: [], dResultRows: [], dCanChange: false, dChangeLabel: 'Change vote',
+      dVoteCtaLabel: 'Cast vote', dVoteDisabled: true, dShowCancel: false, deleteQuestion: 'This poll',
+    };
+    if (poll) {
+      const total = poll.options.reduce((a, o) => a + o.votes, 0);
+      const isOwner = poll.owner === this.me;
+      const canManage = isOwner || !!this.props.admin;
+      const open = poll.status === 'open';
+      const voting = open && s.voting;
+      const maxVotes = poll.options.reduce((m, o) => Math.max(m, o.votes), 0);
+
+      detail.dStatusVariant = open ? 'live' : 'archived';
+      detail.dStatusLabel = open ? 'Open' : 'Closed';
+      detail.dQuestion = poll.question;
+      detail.dOwner = poll.owner;
+      detail.dOwnerLabel = isOwner ? 'Created by you' : 'Created by ' + poll.owner;
+      detail.dTotalLabel = total === 0 ? 'No votes yet' : total + (total === 1 ? ' vote total' : ' votes total');
+      detail.dCanManage = canManage;
+      detail.dCanClose = canManage && open;
+      detail.dVoting = voting;
+      detail.dShowResults = !voting;
+      detail.dCanChange = open && !voting;
+      detail.dChangeLabel = poll.myVote ? 'Change vote' : 'Cast your vote';
+      detail.dVoteCtaLabel = poll.myVote ? 'Update vote' : 'Cast vote';
+      detail.dVoteDisabled = !s.draftVote;
+      detail.dShowCancel = poll.myVote != null || canManage;
+      detail.deleteQuestion = '\u201C' + poll.question + '\u201D';
+
+      detail.dPickRows = poll.options.map((o) => {
+        const sel = s.draftVote === o.id;
+        return {
+          label: o.label, selected: sel, onPick: () => this.setState({ draftVote: o.id }),
+          rowStyle: 'display:flex; align-items:center; gap:var(--space-3); padding:var(--space-4); border:1px solid ' + (sel ? 'var(--accent-interactive)' : 'var(--border-light)') + '; border-radius:var(--radius); cursor:pointer; background:' + (sel ? 'color-mix(in srgb, var(--accent-interactive) 7%, var(--bg-surface))' : 'var(--bg-surface)') + '; color:' + (sel ? 'var(--accent-interactive)' : 'var(--text-primary)') + '; transition:border-color var(--transition), background var(--transition), color var(--transition)',
+          radioStyle: 'width:20px; height:20px; flex-shrink:0; border-radius:50%; border:2px solid ' + (sel ? 'var(--accent-interactive)' : 'var(--border-button)') + '; display:inline-flex; align-items:center; justify-content:center',
+        };
+      });
+      detail.dResultRows = poll.options.map((o) => {
+        const pct = total > 0 ? Math.round((o.votes / total) * 100) : 0;
+        const lead = total > 0 && o.votes === maxVotes;
+        return {
+          label: o.label,
+          countLabel: o.votes + (o.votes === 1 ? ' vote' : ' votes'),
+          pctLabel: pct + '%',
+          barWidth: (s.barsIn ? pct : 0) + '%',
+          isMine: poll.myVote === o.id,
+          labelWeight: lead ? 'font-weight:600;' : '',
+          pctWeight: lead ? 'font-weight:700;' : 'font-weight:600;',
+        };
+      });
+    }
+
+    return Object.assign({
+      shellStyle, sidebarStyle, scrimStyle, hamburgerStyle, mainStyle,
+      symbolSize: 16,
+      themeIcon: theme === 'dark' ? 'ph-sun' : 'ph-moon',
+      isList: s.route === 'list', isCreate: s.route === 'create', isDetail: s.route === 'detail',
+      crumbHasCurrent: s.route !== 'list',
+      crumbCurrent: s.route === 'create' ? 'New poll' : (poll ? poll.question : ''),
+      openPolls, closedPolls,
+      openCount: openPolls.length, closedCount: closedPolls.length,
+      hasPolls: all.length > 0, isEmpty: all.length === 0, hasClosed: closedPolls.length > 0,
+      cQuestion: d.question,
+      cQuestionError: (d.submitted || d.qTouched) ? v.question : '',
+      cOptionRows,
+      cAddDisabled: d.options.length >= 6,
+      cOptionCountLabel: d.options.length + ' of 6 options',
+      cShowError: d.submitted && !v.ok,
+      confirmOpen: s.confirmDelete && !!poll,
+      toggleTheme: () => { const next = s.theme === 'light' ? 'dark' : 'light'; this.setState({ theme: next }); document.documentElement.setAttribute('data-theme', next); },
+      openDrawer: () => this.setState({ drawerOpen: true }),
+      closeDrawer: () => this.setState({ drawerOpen: false }),
+      goList: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ route: 'list', drawerOpen: false }); },
+      goCreate: () => this.setState({ route: 'create', drawerOpen: false }),
+      cSetQuestion: (e) => this.setState((st) => ({ draft: Object.assign({}, st.draft, { question: e.target.value }) })),
+      cBlurQuestion: () => this.setState((st) => ({ draft: Object.assign({}, st.draft, { qTouched: true }) })),
+      cAdd: () => this.addOption(),
+      cSubmit: () => this.submitCreate(),
+      castVote: () => this.castVote(),
+      cancelVote: () => { this.setState({ voting: false }); this.animateBars(); },
+      changeVote: () => this.setState({ voting: true, draftVote: poll ? poll.myVote : null }),
+      closePoll: () => this.setState((st) => ({ polls: st.polls.map((p) => p.id === st.selectedId ? Object.assign({}, p, { status: 'closed' }) : p) })),
+      askDelete: () => this.setState({ confirmDelete: true }),
+      cancelDelete: () => this.setState({ confirmDelete: false }),
+      doDelete: () => this.setState((st) => ({ polls: st.polls.filter((p) => p.id !== st.selectedId), route: 'list', confirmDelete: false, selectedId: null })),
+    }, detail);
+  }
+}
+</script>
+</body>
+</html>

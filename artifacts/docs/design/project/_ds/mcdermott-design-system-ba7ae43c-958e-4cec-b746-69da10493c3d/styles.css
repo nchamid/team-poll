@@ -1,0 +1,13 @@
+/* ============================================================
+   McDermott Design System — global entry point
+   Consumers link this single file. It is a list of @import lines
+   only — never add rules here. Everything it transitively imports
+   (tokens, fonts, base) ships to consumers.
+   ============================================================ */
+@import url("tokens/colors.css");
+@import url("tokens/spacing.css");
+@import url("tokens/elevation.css");
+@import url("tokens/motion.css");
+@import url("tokens/typography.css");
+@import url("tokens/theme.css");
+@import url("tokens/base.css");
