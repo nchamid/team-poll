@@ -98,6 +98,41 @@
   flex-shrink: 0;
 }
 
+/* Sports — secondary-button treatment as a semantic link; hover flips
+   border + text to the interactive accent. */
+.sports {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-button);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+}
+
+.sports:hover {
+  color: var(--accent-interactive);
+  border-color: var(--accent-interactive);
+}
+
+.sports:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
 @media (max-width: 1023px) {
   .hamburger {
     display: inline-flex;
