@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Ship a Tier 1 application into `dev` (the integration branch — what gets demoed). Gates on the review cache, commits directly on the shared workspace's branch, merges into `dev` locally with race-handling, pushes `dev`. The only authorised path to a commit in this workflow. No pull requests, no gh dependency.
+description: Ship a Tier 1 application into `dev` (the integration branch — what gets demoed). Runs `/review` inline as the gate (no review cache), commits directly on the current session branch, merges into `dev` locally with race-handling, pushes `dev`. The only authorised path to a commit in this workflow. No pull requests, no gh dependency.
 version: "0.3"
 ---
 
@@ -12,16 +12,16 @@ Takes the work `/plan` and `/build` produced. Runs the tests, the security audit
 
 This skill is the Tier 1 equivalent of `/dev-ship` — both implement the same gate-commit-merge-push flow, differing only in command name and in the workspace shape (Tier 1 uses one shared workspace; tier 3 uses per-slice worktrees). The analyst does not see worktrees, branches, merges, or pushes — they see "shipping" and "shipped." Speak in plain English alongside git terms per [rules/dev/git-workflow.md](../../rules/dev/git-workflow.md).
 
-## Workspace — shared across the build flow
+## Workspace — the current session worktree
 
-`/plan` and `/build` already operated against a shared workspace branched off `dev`. This skill ships that workspace's branch. Use the same name to resolve the workspace path (idempotent, returns the existing one):
+`/plan` and `/build` already worked in the current session worktree. This skill ships that worktree's branch. Resolve its path and branch:
 
 ```bash
-WT=$(bash .claude/hooks/begin-change.sh --type build initial-build)
+WT="$(git rev-parse --show-toplevel)"
 SLICE_BR=$(git -C "$WT" branch --show-current)
 ```
 
-`SLICE_BR` will be `build/initial-build` — the branch holding all the plan + build + review work.
+`SLICE_BR` is the current session branch — it holds all the plan + build + review work (uncommitted), ready to commit and merge into `dev`.
 
 ## Steps
 
@@ -31,10 +31,9 @@ SLICE_BR=$(git -C "$WT" branch --show-current)
 - If the current branch is `dev`, `main`, or `master`:
   - **STOP** with a plain-English message: *"You're on the integration branch (the one we ship completed work to). `/ship` only runs when you're working on a Tier 1 application that's been planned and built. Run `/plan` first."*
 
-### 2. Silent cleanup of leftovers
+### 2. (No worktree cleanup)
 
-- Invoke `bash .claude/hooks/cleanup-merged-worktrees.sh --silent` to sweep any previously-merged workspaces. Silent on success.
-- Best-effort. If it fails, write to stderr and continue.
+This flow ships the **current session worktree**, not a disposable build worktree, so there is nothing to sweep here. Do **not** run `cleanup-merged-worktrees.sh` — once this branch is merged it would target the live session worktree you're working in. Proceed.
 
 ### 3. Show what will be shipped
 
@@ -42,34 +41,21 @@ SLICE_BR=$(git -C "$WT" branch --show-current)
 - Run `git -C "$WT" diff --stat` for a summary of changes.
 - If there are no changes to ship, report in plain English and **STOP**.
 
-### 4. Verify the review gate
+### 4. Review gate — run `/review` inline
 
-`/ship` will not let an untested change reach `dev`. `/review` writes `$WT/artifacts/docs/dev/reviews/.last-clean-run.json` when it ends `CLEAN`. That cache is the test gate.
+`/ship` will not let an untested change reach `dev`. The review gate runs **every time** — there is no review cache to consult or write.
 
-Check `$WT/artifacts/docs/dev/reviews/.last-clean-run.json`. Treat the cache as **valid** only when **all** of these are true:
-
-1. The file exists and parses as valid JSON.
-2. `head_sha` matches `git -C "$WT" rev-parse HEAD`.
-3. `diff_hash` matches the SHA-256 of `git -C "$WT" diff HEAD`:
-   ```bash
-   git -C "$WT" diff HEAD | shasum -a 256 | awk '{print $1}'
-   ```
-   If `git diff HEAD` is empty, the stored hash is the SHA-256 of an empty string — `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` — and that still counts as a match.
-4. `completed_at` is within the last 60 minutes.
-
-If the cache is **valid** → proceed to step 5.
-
-If the cache is **missing, stale, or for a different diff** → invoke `/review` with no arguments. It runs unit tests, walks the universal guardrails + Pre-Impl Checklist + layered OWASP A01–A10 audit, auto-remediates mechanical findings, and prompts the analyst for architectural decisions — all inside a bounded 5-iteration loop. On `CLEAN` it writes `$WT/artifacts/docs/dev/reviews/.last-clean-run.json`.
+Invoke `/review` with no arguments. It runs unit tests, walks the universal guardrails + Pre-Impl Checklist + layered code-review walk + layered OWASP A01–A10 audit, auto-remediates mechanical findings, and prompts the analyst for architectural decisions — all inside a bounded 5-iteration loop. It returns a status; it does **not** write a `.last-clean-run.json` file.
 
 After `/review` returns:
 
-- Final status **`CLEAN`** → re-validate the cache using the four checks above, then proceed to step 5.
+- Final status **`CLEAN`** → proceed to step 5.
 - Final status **`UNRESOLVED-STUCK`** or **`UNRESOLVED-CAP`** → **STOP**. Plain English: *"There are issues I couldn't fix on my own. Shipping is paused until they're sorted."*
 - Analyst interrupted `/review` (e.g. left an architectural decision unanswered) → **STOP**. Plain English: *"Shipping is paused — running `/ship` again will pick up where we left off."*
 
 ### 5. Commit on the shared workspace's branch
 
-The review gate at step 4 has already cleared this diff (or it was cleared within the cache's 60-minute window). No additional reviews run here — `/ship` commits directly.
+The review gate at step 4 has already cleared this diff (it ran `/review` inline just now). No additional reviews run here — `/ship` commits directly.
 
 **5a. Stage changes.**
 
@@ -107,7 +93,7 @@ Notes:
 - The token lives at the project-root `.claude/.commit-allowed` — that's where the hook reads from. The git commit itself runs inside `$WT`, but the gate check happens at the hook's CWD (the primary worktree).
 - The hook self-deletes `.claude/.commit-allowed` the moment it reads the file, making the token one-shot at the hook layer as well. The `trap` is defence-in-depth.
 - Never `touch .claude/.commit-allowed` outside this atomic block — leaving the file on disk between turns would let a subsequent raw `git commit` slip past the gate.
-- The commit lands on the `build/initial-build` branch (inside the shared workspace) — still local, never pushed. Step 6 handles the merge into `dev` and the push.
+- The commit lands on the current **session branch** — still local, never pushed. Step 6 handles the merge into `dev` and the push.
 
 ### 6. Merge into `dev` and push
 
@@ -152,10 +138,9 @@ Failure modes:
 - **Push rejected after 3 retries** — *"Something keeps landing on `dev` faster than I can push (this is called a push rejection). Try `/ship` again in a moment."* **STOP**.
 - **Any other git failure** — translate to plain English, surface the underlying error to stderr for debugging, and **STOP**.
 
-### 7. Workspace cleanup
+### 7. (No workspace cleanup)
 
-- Invoke `bash .claude/hooks/cleanup-merged-worktrees.sh --silent`.
-- The just-shipped workspace will be swept since its branch is now merged into `dev`. Silent on success.
+Do **not** run `cleanup-merged-worktrees.sh`. The branch just merged into `dev` is the **live session worktree** the analyst is still working in — sweeping it would delete the active workspace. There is no disposable build worktree to clean up. Proceed to the report.
 
 ### 8. Report success
 

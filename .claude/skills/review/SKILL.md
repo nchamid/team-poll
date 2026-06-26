@@ -1,21 +1,21 @@
 ---
 name: review
-description: Bounded 5-iteration review-and-remediate loop run at the end of /build (or auto-invoked by /ship on cache miss). Runs the full test suite, walks universal guardrails + Pre-Impl Checklist tiers, a layered per-layer code-review walk (web + api + database checklists), then a layered OWASP A01–A10 security audit (web + api + database checklists) with auto-remediation. Critical/High findings (code-review or security) block the clean status; Medium/Low are reported. Auto-applies mechanical fixes; surfaces architectural findings in one batched prompt per iteration. Writes artifacts/docs/dev/reviews/.last-clean-run.json on clean status so /ship can skip its own review.
+description: Bounded 5-iteration review-and-remediate loop run at the end of /build (or invoked inline by /ship's review gate). Runs the full test suite, walks universal guardrails + Pre-Impl Checklist tiers, a layered per-layer code-review walk (web + api + database checklists), then a layered OWASP A01–A10 security audit (web + api + database checklists) with auto-remediation. Critical/High findings (code-review or security) block the clean status; Medium/Low are reported. Auto-applies mechanical fixes; surfaces architectural findings in one batched prompt per iteration. Returns a CLEAN / UNRESOLVED status that /ship consults — no review cache is written.
 ---
 
 # /review — Build-completion gate
 
-Bounded loop — max 5 iterations. Run at the end of `/build` against the full diff inside the shared workspace (or auto-invoked by `/ship` when its review-cache is missing or stale). Each iteration walks **five gates in order**: tests, universal guardrails, the Pre-Impl Checklist, the layered per-layer code-review walk, and the layered OWASP A01–A10 security audit. Auto-fixes mechanical findings (code-review and security remediations). Surfaces architectural findings — code-quality and security together — in a single batched prompt per iteration. Exits early when status reaches `CLEAN`; stops at iteration 5 with `UNRESOLVED-CAP` if open Critical/High findings remain; stops earlier with `UNRESOLVED-STUCK` if an iteration produces no net progress. Writes `artifacts/docs/dev/reviews/.last-clean-run.json` only on `CLEAN` so the next `/ship` is fast.
+Bounded loop — max 5 iterations. Run at the end of `/build` against the full diff inside the shared workspace (or invoked inline by `/ship`'s review gate every time it ships). Each iteration walks **five gates in order**: tests, universal guardrails, the Pre-Impl Checklist, the layered per-layer code-review walk, and the layered OWASP A01–A10 security audit. Auto-fixes mechanical findings (code-review and security remediations). Surfaces architectural findings — code-quality and security together — in a single batched prompt per iteration. Exits early when status reaches `CLEAN`; stops at iteration 5 with `UNRESOLVED-CAP` if open Critical/High findings remain; stops earlier with `UNRESOLVED-STUCK` if an iteration produces no net progress. Reports the final status to its caller — it does **not** write a `.last-clean-run.json` cache file.
 
-## Workspace — shared across the build flow
+## Workspace — the current session worktree
 
-`/plan` and `/build` already populated a shared workspace branched off `dev`. This skill continues in that same workspace. Before any Edit/Write/NotebookEdit:
+`/plan` and `/build` already worked in the current session worktree. This skill continues in that same working tree. Before any Edit/Write/NotebookEdit:
 
 ```bash
-WT=$(bash .claude/hooks/begin-change.sh --type build initial-build)
+WT="$(git rev-parse --show-toplevel)"
 ```
 
-`begin-change.sh` is idempotent on name, so this call returns the same workspace `/plan` and `/build` used. Run every git command and every test command from inside `$WT` (use `git -C "$WT" …` and `cd "$WT"` for tooling that needs the right working directory). Write `artifacts/docs/dev/reviews/.last-clean-run.json` and every review-artefact file into `$WT/artifacts/docs/dev/reviews/`, not into the actual `dev`-branch project root. Ensure the `artifacts/docs/dev/reviews/` folder exists (create it if missing) before the first write.
+This resolves the same working tree `/plan` and `/build` used. Run every git command and every test command from inside `$WT` (use `git -C "$WT" …` and `cd "$WT"` for tooling that needs the right working directory). Write every review-artefact file into `$WT/artifacts/docs/dev/reviews/`. Ensure the `artifacts/docs/dev/reviews/` folder exists (create it if missing) before the first write.
 
 If `$WT` is empty or missing the expected build output (`api/`, `web/`, `database/`), **STOP** and tell the analyst to run `/build` first.
 
@@ -39,14 +39,14 @@ Read once, in parallel:
 
 Every finding (mechanical or architectural) is classified by severity. The blocking policy determines whether the run can reach `CLEAN`:
 
-| Severity     | What it is                                                                                                                                                                                                       | Effect on cache write                                                                    |
+| Severity     | What it is                                                                                                                                                                                                       | Effect on CLEAN status                                                                    |
 | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | **Critical** | Security: actively exploitable vulnerability, exposed secret, credential leak, RCE vector, raw SQL concat with user input. Code-review: violations of universal guardrails surfaced again at code level (PII in logs, secrets in source, `eval`, raw SQL concat).                                                 | **Blocks** — must be Applied or rationale-Rejected before `CLEAN`.                       |
 | **High**     | Security: XSS vectors, auth bypass, missing `[Authorize]`, ownership-violation returning 404, `dangerouslySetInnerHTML` without sanitization, tokens in `localStorage`, vulnerable NuGet/npm package with patch available. Code-review: missing `CancellationToken` on async API, controller doing business logic / direct DB access, default export in shared component, missing 6 audit columns on a new table. | **Blocks** — same as Critical.                                                           |
 | **Medium**   | Security: missing security headers, weak defaults, CORS too permissive, missing rate limit, missing SRI. Code-review: prop drilling > 2 levels, missing `React.memo` + `useCallback` pair on list items, methods > 40 lines, non-SARGable WHERE clause.                                                                                            | **Does not block.** Auto-applied if mechanical; surfaced for awareness if architectural. |
 | **Low**      | Best-practice / defense-in-depth improvements. Naming inconsistencies, missing constants for magic numbers, unused imports.                                                                                                                                                                   | **Does not block.** Reported only.                                                       |
 
-Any **Critical or High** finding (code-review or security) that is not Applied or Rejected in the architectural prompt leaves the status as `OPEN` and prevents the cache file from being written.
+Any **Critical or High** finding (code-review or security) that is not Applied or Rejected in the architectural prompt leaves the status as `OPEN` and prevents the run from reaching `CLEAN`.
 
 ## Iteration loop
 
@@ -57,14 +57,14 @@ Run iterations `1..MAX_ITERATIONS` (default 5). Each iteration is one complete p
 1. Steps 1–7 run as documented below — scope → tests → guardrails → Pre-Impl Checklist → code-review walk → OWASP audit → apply mechanical fixes.
 2. Step 8 (architectural findings) only surfaces findings that aren't already Applied or Rejected in `artifacts/docs/dev/reviews/architectural-findings.md`. The analyst's decisions from prior iterations carry forward; previously-Rejected findings are silently skipped.
 3. At the end of the iteration, evaluate stop conditions in this order:
-   - **CLEAN** → all blocking conditions clear (per step 9's "what counts as CLEAN"). Exit loop. Run step 9 (cache write) and step 10 (summarise).
+   - **CLEAN** → all blocking conditions clear (per step 9's "what counts as CLEAN"). Exit loop. Run step 9 (determine status) and step 10 (summarise).
    - **UNRESOLVED-CAP** → current iteration == `MAX_ITERATIONS` (5) AND status is not CLEAN. Exit loop. Skip step 9. Run step 10 with status `UNRESOLVED-CAP`.
    - **UNRESOLVED-STUCK** → the set of open findings is the same as the previous iteration AND no mechanical fix was applied this iteration (no net progress). Exit loop. Skip step 9. Run step 10 with status `UNRESOLVED-STUCK`.
    - **Continue** → none of the above. Loop back to step 1.
 
 `--max-iterations <n>` (rare) can override the default of 5; lower bound 1, no upper bound enforced but iteration 5 is the documented cap.
 
-The cache file (step 9) is only written when the loop exits with `CLEAN`. `UNRESOLVED-*` outcomes leave the prior cache file untouched — they do not invalidate or rewrite it.
+Step 9 confirms `CLEAN` status when the loop exits cleanly. `UNRESOLVED-*` outcomes simply end the run without a `CLEAN` status — there is no cache file to write or leave behind.
 
 ## Steps
 
@@ -85,7 +85,7 @@ Scope set: `source_scope` = the rest. Identify the layers present (`web`, `api`,
 - **Secret scan** — grep the changed docs for credential patterns: `api[_-]?key`, `secret`, `password\s*[=:]`, `token`, `connectionstring`, `sk-`, AWS/Azure key shapes, long hex/base64 blobs, bearer tokens, and embedded internal URLs.
 - **PII / privileged-content scan** — flag client names, matter numbers/references, personal emails and phone/extension numbers, and anything classified above `Internal` per the project's `Sensitivity` field. (Critical for intake briefs — they're the highest-risk document in the flow.)
 - A **Critical or High** finding here (e.g. a live-looking credential, or privileged client content in a doc destined for a shared branch) **blocks `CLEAN`**, exactly like a code finding. Mechanical removals (e.g. stripping a pasted secret, redacting a matter reference) auto-apply; judgement calls go to the architectural prompt (step 8).
-- Then proceed to steps 9–10 normally. On `CLEAN`, the cache is written so `/ship` proceeds deterministically — no improvised skip.
+- Then proceed to steps 9–10 normally. On `CLEAN`, `/ship` proceeds (it runs `/review` inline and reads the returned status) — no improvised skip.
 
 **Tool-call budget for the code-review + security audit:** target ≤ 45 tool calls for steps 5 + 6 + 7 combined (15 per layered walk on average). The audit is a focused diff scan, not a full repo audit. If you find yourself reading files outside the diff "for context," stop and re-scope.
 
@@ -272,7 +272,7 @@ Parse the reply:
 
 If the developer skips the prompt or doesn't reply, the run stays open with findings as `Pending`.
 
-### 9. Write the cache file (clean status only)
+### 9. Determine CLEAN status
 
 A run is `CLEAN` when **all** of the following are true:
 
@@ -280,34 +280,9 @@ A run is `CLEAN` when **all** of the following are true:
 2. Zero Critical or High **code-review or security** findings remain `Pending`, `Deferred`, or otherwise unresolved.
 3. Every architectural finding has been Applied or Rejected.
 
-If `CLEAN`, write `$WT/artifacts/docs/dev/reviews/.last-clean-run.json` atomically:
+**No cache file is written.** `/ship` runs `/review` inline every time it ships and acts on the status this step reports — there is no `.last-clean-run.json` to write, and nothing for `/ship` to read back. (This is the deliberate change from the cached design: a self-written "review passed" token that `/ship` later trusted to skip the gate tripped the auto-mode safety classifier as gate-fabrication. Running the review inline every time removes the token entirely.)
 
-```json
-{
-  "label": "<branch-slug-or-commit-subject>-<short-sha>",
-  "head_sha": "<git rev-parse HEAD>",
-  "diff_hash": "<sha256 of git diff HEAD>",
-  "completed_at": "<ISO 8601 UTC>",
-  "max_severity_reached": "Low",
-  "phases_run": [
-    "tests",
-    "guardrails",
-    "pre-impl",
-    "code-review-web",
-    "code-review-api",
-    "code-review-database",
-    "security-web",
-    "security-api",
-    "security-database"
-  ]
-}
-```
-
-`phases_run` lists only the layers actually walked (e.g., a diff that touches only `web/` records `["tests", "guardrails", "pre-impl", "code-review-web", "security-web"]`).
-
-`/ship` consults this file to skip its own review pass when nothing has changed since.
-
-If status is not clean (any open Critical / High finding remains, or any deferred-Critical/High would block), do **not** write the cache file. The developer must run `/review` again after resolving them.
+If status is not clean (any open Critical / High finding remains, or any deferred-Critical/High would block), the run ends `UNRESOLVED`. The developer must resolve the findings, then re-run `/review` — or just re-run `/ship`, which runs `/review` again.
 
 ### 10. Summarise and stop
 
@@ -342,14 +317,14 @@ The bounded loop handles normal convergence (mechanical fixes → re-run → arc
 
 - **After `UNRESOLVED-STUCK`** — the same findings keep recurring without progress. Inspect the open findings, resolve them by hand (or split the diff so the next loop sees less surface area), and re-run `/review`.
 - **After `UNRESOLVED-CAP`** — the loop hit 5 iterations with Critical/High findings still open. Same drill: resolve the remaining items and re-run.
-- **After a `Deferred` Critical/High is resolved out of band** — re-run so the cache reflects the new clean state.
+- **After a `Deferred` Critical/High is resolved out of band** — re-run so the next status reflects the new clean state.
 
 If `/review` returns `UNRESOLVED-*` twice in a row on the same diff, the diff is too coarse to safely auto-remediate. Split the change and re-run on the smaller scope.
 
 ## Do not
 
 - Skip the loop. The iteration cap is the safety bound, not an opt-in.
-- Write the cache file on non-clean status. A `/ship` skip on an unresolved review is a compliance violation.
+- Declare `CLEAN` on non-clean status. `/ship` acts on the status `/review` returns, so a false `CLEAN` would land an unreviewed change on `dev` — a compliance violation.
 - Walk the firm Tier 1+ 80% coverage gate — Tier 1 is behavior-floor (ADR-001).
 - Refuse to declare clean over stylistic preferences — the only blockers are guardrail failures, Pre-Impl Checklist failures, Critical/High code-review or security findings, and unresolved architectural findings.
 - Read files outside the diff "to be thorough" during the code-review or security audits. The 45-tool-call budget for steps 5+6+7 exists to keep the audit lean; if you blow through it, you're auditing the repo, not reviewing the diff.

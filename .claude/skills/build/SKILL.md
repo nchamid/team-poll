@@ -7,15 +7,15 @@ description: Scaffold (on first invocation) and implement the entire Tier 1 appl
 
 Reads `plan.md` and `decisions.md` from `$WT/artifacts/docs/dev/` in the shared workspace. On the first invocation against an empty workspace, populates the empty `api/`, `web/`, `database/` placeholders the CLI created. In the same invocation, implements the entire application end-to-end. No separate scaffold gate — `/review` at the end of `/build` is the structural gate.
 
-## Workspace — shared across the build flow
+## Workspace — the current session worktree
 
-`/plan` started a shared workspace (branched off `dev`) and wrote `plan.md` and `decisions.md` into `$WT/artifacts/docs/dev/`. This skill continues in that same workspace. Before any Edit/Write/NotebookEdit:
+`/plan` wrote `plan.md` and `decisions.md` into `$WT/artifacts/docs/dev/` in the current session worktree. This skill continues in that same working tree. Before any Edit/Write/NotebookEdit:
 
 ```bash
-WT=$(bash .claude/hooks/begin-change.sh --type build initial-build)
+WT="$(git rev-parse --show-toplevel)"
 ```
 
-`begin-change.sh` is idempotent on name, so this call returns the same workspace `/plan` started. Read `plan.md` and `decisions.md` from `$WT/artifacts/docs/dev/`. Issue every Edit/Write in this skill against paths inside `$WT` — the "project root" referred to throughout this skill means `$WT/`, not the actual `dev`-branch project root.
+This resolves the same working tree `/plan` used. Read `plan.md` and `decisions.md` from `$WT/artifacts/docs/dev/`. Issue every Edit/Write in this skill against paths inside `$WT` — the "project root" referred to throughout this skill means `$WT/`.
 
 If `$WT/artifacts/docs/dev/plan.md` doesn't exist, **STOP** and tell the analyst to run `/plan` first.
 

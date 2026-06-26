@@ -7,35 +7,23 @@ description: Plan a Tier 1 application from a requirements doc. Produces two art
 
 Reads the requirements doc and produces **two** planning artefacts: `plan.md` and `decisions.md`. **No code is written.** Target time: 30–45 min for a small Tier 1 app.
 
-The requirements doc is **always** `artifacts/docs/product/solution-requirements.md` — the Analyst's solution-requirements deliverable from `/requirements-gathering`. It is the authoritative input; do not accept ad-hoc paths or pasted requirements in its place. **Step 0 below re-syncs this brief to `dev`** (after a secret/PII scan) before any planning begins, so this skill's workspace — branched off `dev` — has the latest copy. The Analyst has already run `/requirements-gathering` → `/requirements-ship` → `/design-foundation` → `/design-code-handoff` before reaching `/plan`; Step 0 picks up any in-place edits `/design-code-handoff` made to the brief (e.g. accepted scope changes or a tier promotion) and republishes them.
+The requirements doc is **always** `artifacts/docs/product/solution-requirements.md` — the Analyst's solution-requirements deliverable from `/requirements-gathering`. It is the authoritative input; do not accept ad-hoc paths or pasted requirements in its place. It already lives in the current working tree — the Analyst ran `/requirements-gathering` (and, if applicable, `/design-foundation` → `/design-code-handoff`) before reaching `/plan`, all in this same worktree. `/plan` reads it in place; nothing is published to `dev` ahead of time.
 
-## Step 0 — Publish the requirements brief to `dev`
+## Workspace — the current session worktree
 
-Before creating the workspace, make sure the finalized requirements brief is on `dev` — that is what makes it available to this skill's `dev`-branched workspace.
+`/plan`, `/build`, and `/ship` all operate **in the current working tree** — the session worktree the harness already created off `dev`. No separate build worktree is created.
 
-**Invoke `/requirements-ship`.** It locates the completed brief, scans it (secrets/PII), and publishes it to `dev`. It is **idempotent**: if `dev` already has the current brief (a `/plan` re-run, or a bug-fix/feature on an already-shipped app), it does nothing. The Analyst has already run `/requirements-ship` explicitly after intake; this Step 0 re-sync covers any in-place edits `/design-code-handoff` made to the brief during reconciliation (or backstops a skipped initial publish).
-
-- If `/requirements-ship` publishes (or confirms) the brief on `dev` → **continue to the Workspace section below.** Do not stop here.
-- If `/requirements-ship` **STOPs** because there is no completed brief (missing, or still the blank template, or unresolved `[PENDING]` sections) → relay its message (run `/requirements-gathering` first) and **STOP** `/plan` too. Do not create a workspace without a brief.
-- If `/requirements-ship` **STOPs** on a Critical/High secret/PII finding → relay it and **STOP**. The brief must be cleaned before planning.
-
-This is the **only** point where `/plan` writes to `dev`. Everything after this produces artefacts inside the workspace, uncommitted, until `/ship`.
-
-## Workspace — shared across the build flow
-
-`/plan`, `/build`, and `/ship` all operate against a **shared workspace** branched off `dev` at the start of `/plan`. This is a deliberate exception to the CLAUDE.md "derive a kebab-case name from the user's request" rule for the integration-branch guard.
-
-Before any Edit/Write/NotebookEdit in this skill, ask for the shared workspace by its fixed name:
+Before any Edit/Write/NotebookEdit in this skill, resolve the working-tree root:
 
 ```bash
-WT=$(bash .claude/hooks/begin-change.sh --type build initial-build)
+WT="$(git rev-parse --show-toplevel)"
 ```
 
-`begin-change.sh` is idempotent on name, so when `/build` and `/ship` later run the same command, they continue in the same workspace and see this skill's `plan.md` and `decisions.md` (both under `$WT/artifacts/docs/dev/`). **No build work is committed until the analyst runs `/ship`** at the end of the build — that final ship lands the planning artefacts + scaffold + implementation on `dev` as one merge commit. (The requirements brief is the one exception: Step 0 above already published it to `dev` via `/requirements-ship` — that's why this workspace, branched off `dev`, already has it. `/ship` and `/requirements-ship` are the only commands that commit.)
+`/build` and `/ship` resolve the same path, so they see this skill's `plan.md` and `decisions.md` (both under `$WT/artifacts/docs/dev/`). **No work is committed until the analyst runs `/ship`** at the end of the build — that final ship commits the planning artefacts + scaffold + implementation (and the requirements brief) on the session branch and merges them onto `dev` as one merge commit. `/ship` is the only command that commits.
 
-Issue every Edit/Write in this skill against paths inside `$WT`. The "project root" referred to throughout this skill means `$WT/`, not the actual `dev`-branch project root. Both planning artefacts produced by this skill live under `$WT/artifacts/docs/dev/`.
+Issue every Edit/Write in this skill against paths inside `$WT`. Both planning artefacts produced by this skill live under `$WT/artifacts/docs/dev/`. The session worktree is on a non-`dev` branch, so the integration-branch guard permits these edits; the work stays uncommitted there until `/ship`.
 
-If `begin-change.sh` reports the project is missing `dev` or has uncommitted edits on `dev`, **STOP** and report in plain English — that is a setup issue the analyst can't fix mid-flow.
+> **Brief validation:** the requirements doc at `$WT/artifacts/docs/product/solution-requirements.md` is required. If it's missing, still the blank template, or has unresolved `[PENDING]` sections, **STOP** and tell the Analyst to complete `/requirements-gathering` first — do not plan from an incomplete brief.
 
 ## Session-start protocol
 
