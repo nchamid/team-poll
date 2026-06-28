@@ -11,21 +11,27 @@ import { App } from './App';
 import './mws/tokens.css';
 import './styles/global.css';
 
-initTelemetry();
-
-const msalInstance = new PublicClientApplication(msalConfig);
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
+/**
+ * Production bootstrap: Entra/MSAL sign-in gate over the real API. The
+ * MSAL-dependent objects are constructed inside this function (not at module
+ * scope) so the static demo build — which never sets the VITE_AZURE_* vars —
+ * doesn't construct a PublicClientApplication with an empty client id.
+ */
 async function bootstrap(): Promise<void> {
+  initTelemetry();
+
+  const msalInstance = new PublicClientApplication(msalConfig);
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: 1,
+        staleTime: 30_000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  });
+
   await msalInstance.initialize();
 
   // Set the first account active so silent token acquisition has a target.
@@ -62,4 +68,10 @@ async function bootstrap(): Promise<void> {
   );
 }
 
-void bootstrap();
+if (import.meta.env.VITE_DEMO_MODE === 'true') {
+  // Static demo build (GitHub Pages): no Entra sign-in, in-memory mock API.
+  // Loaded as a separate chunk so the production bundle excludes demo code.
+  void import('./demo/bootstrapDemo').then(({ bootstrapDemo }) => bootstrapDemo());
+} else {
+  void bootstrap();
+}
