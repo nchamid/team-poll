@@ -7,6 +7,9 @@ interface ImportMetaEnv {
   readonly VITE_API_SCOPE: string;
   readonly VITE_API_BASE_URL: string;
   readonly VITE_APPINSIGHTS_CONNECTION_STRING: string;
+  /** Set to 'true' only for the static GitHub Pages demo build — switches the
+   * app to the in-memory mock API and skips Entra sign-in. Unset in production. */
+  readonly VITE_DEMO_MODE?: string;
 }
 
 interface ImportMeta {

@@ -8,8 +8,10 @@ import { queryKeys } from '@/lib/queryKeys';
 import { PollListPage, CreatePollPage, PollDetailPage } from '@features/polls';
 import { type PollDetail } from '@features/polls/types';
 
-/** Renders the active view and computes the breadcrumb leaf for the top bar. */
-function AppContent() {
+/** Renders the active view and computes the breadcrumb leaf for the top bar.
+ * Exported so the static demo build (src/demo) can render the same view-switcher
+ * against a mock API client without going through MSAL's auth gate. */
+export function AppContent() {
   const { view } = useNavigation();
   const queryClient = useQueryClient();
 
